@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.lhr.crm.workbench.dao.ActivityDao">
+
+    <insert id="save">
+        insert into tbl_activity values (
+            #{id},
+            #{owner},
+            #{name},
+            #{startDate},
+            #{endDate},
+            #{cost},
+            #{description},
+            #{createTime},
+            #{createBy},
+            #{editTime},
+            #{editBy}
+        );
+    </insert>
+
+    <insert id="bound">
+        insert into tbl_clue_activity_relation values (#{id},#{clueId},#{activityId})
+    </insert>
+
+    <select id="getActivityByCondition" resultType="Activity">
+
+        select
+
+        a.id,
+        a.name,
+        u.name as owner,
+        a.startDate,
+        a.endDate
+
+        from tbl_activity a
+        join tbl_user u
+        on a.owner=u.id
+
+        <where>
+
+            <if test="name!=null and name!=''">
+                a.name like '%' #{name} '%'
+            </if>
+
+            <if test="owner!=null and owner!=''">
+                and u.name like '%' #{owner} '%'
+            </if>
+
+            <if test="startDate!=null and startDate!=''">
+                and a.startDate &gt; #{startDate}
+            </if>
+
+            <if test="endDate!=null and endDate!=''">
+                and a.endDate &lt; #{endDate}
+            </if>
+
+        </where>
+
+        order by a.createTime desc
+        limit #{skipCount},#{pageSize}
+    </select>
+
+    <select id="getTotalByCondition" resultType="int">
+        select count(*) from tbl_activity a
+            join tbl_user u on a.owner=u.id
+
+        <where>
+            <if test="name!=null and name!=''">
+                a.name like '%' #{name} '%'
+            </if>
+
+            <if test="owner!=null and owner!=''">
+                and u.name like '%' #{owner} '%'
+            </if>
+
+            <if test="startDate!=null and startDate!=''">
+                and a.startDate &gt; #{startDate}
+            </if>
+
+            <if test="endDate!=null and endDate!=''">
+                and a.endDate &lt; #{endDate}
+            </if>
+        </where>
+    </select>
+    
+    <delete id="delList">
+        delete from tbl_activity
+        where id in
+        <foreach collection="array" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getUserActivityById" resultType="Activity">
+        select * from tbl_activity
+        where id=#{id}
+    </select>
+
+    <update id="updateList">
+        update tbl_activity set name=#{name},owner=#{owner},startDate=#{startDate},
+                                endDate=#{endDate},cost=#{cost},description=#{description},
+                                editTime=#{editTime},editBy=#{editBy}
+                            where id=#{id}
+    </update>
+
+
+    <select id="detail" resultType="Activity">
+
+        select
+            a.id,
+            u.name as owner,
+            a.name,
+            a.startDate,
+            a.endDate,
+            a.cost,
+            a.description,
+            a.createTime,
+            a.createBy,
+            a.editTime,
+            a.editBy
+        from tbl_activity a
+        join tbl_user u
+        on a.owner=u.id
+        where a.id=#{id};
+
+
+    </select>
+    <select id="showActivityListByClueId" resultType="com.lhr.crm.workbench.domain.Activity">
+
+        select
+
+            t.id as id,
+            a.name,
+            a.startDate,
+            a.endDate,
+            u.name as owner
+
+        from tbl_activity a
+                 join tbl_user u
+                      on a.owner=u.id
+                 join tbl_clue_activity_relation t
+                      on a.id=t.activityId
+
+        where t.clueId=#{clueId}
+
+    </select>
+    <select id="getActivityListByCondition" resultType="com.lhr.crm.workbench.domain.Activity">
+
+        select
+               a.id,
+               a.name,
+               u.name as owner,
+               a.startDate,
+               a.endDate
+            from tbl_activity a
+                join tbl_user u on a.owner=u.id
+            where a.name like '%' #{aname} '%' and a.id not in (
+                select  activityId from tbl_clue_activity_relation
+                where clueId=#{clueId}
+            )
+
+    </select>
+    <select id="getActivityById" resultType="com.lhr.crm.workbench.domain.Activity">
+        select * from tbl_activity where id=#{aId}
+    </select>
+
+
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
